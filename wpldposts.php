@@ -1,9 +1,9 @@
 <?php
 /*
- * Plugin Name: wpldp
+ * Plugin Name: WpLdp
  * Plugin URI: https://mizar.ursa.wares.fr/wordpress/
  * Description: This is a plugin which aims to emulate the default caracteristics of a Linked Data Platform compatible server
- * Version: 0.1
+ * Version: 0
  * License: GPL2
  */
  

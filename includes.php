@@ -18,7 +18,7 @@ class wpldp_includes
 	{
 		// A utiliser comme modele pour criteres de tri/filtres getpost()
 		$data = get_posts( array(
-			'post_type'      => 'c@ndy',
+			'post_type'      => 'candy',
 			'post_status'    => 'publish',
 			'posts_per_page' => 20,
 		) );
