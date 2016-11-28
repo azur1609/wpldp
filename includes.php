@@ -4,14 +4,14 @@
  */
 namespace wpldp;
 
-class wpldposts_includes
+class wpldp_includes
 
 {
 
     public function __construct()
 
     {
-		//echo 'Constructeur fichier : includes.php  classe : wpldposts_test';
+		//echo 'Constructeur fichier : includes.php classe : wpldposts_test';
     }
 
 	public function wpldposts_getposts()
