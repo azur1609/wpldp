@@ -100,7 +100,7 @@ $data->get_body()
 		'callback' => array($this, 'wpldp_detail_post') ));
 		
 		/* Registers a route for fonction test 2*/
-		register_rest_route( 'ldp', '/toto2/', array(
+		register_rest_route( 'ldp', '/posts/(?P<slug>[a-zA-Z0-9-]+)/comments/', array(
 		'methods' => 'GET',
 		'callback' => array($this, 'wpldp_toto2') ));
 		
@@ -132,7 +132,7 @@ $data->get_body()
 			{
 				$posts[$cpt] = array(
 				'rdfs:label'=>$tabPosts[$cpt]-> post_name,
-				'dc:title'=>$tabPosts[$cpt]-> post_title,
+				'dcterms:title'=>$tabPosts[$cpt]-> post_title,
 				'dcterms:created'=>$tabPosts[$cpt]-> post_date,
 				'sioc:User'=>$tabPosts[$cpt]-> post_author) ;
 			}
@@ -171,16 +171,43 @@ $data->get_body()
 	
 		// gets post from its slug
 		$post = get_page_by_path($data['slug'],OBJECT,'post');
-
+		
+		// keeps only useful properties, link them to rdf <properties>, stores them in array
+		$filteredPost = array(
+		'sioc:User' => $post -> post_author,
+		'dcterms:created' => $post -> post_date,
+		'dcterms:text' => $post -> post_content,
+		'dcterms:title' => $post -> post_title,
+		'undefined:1' => $post -> post_status,
+		'undefined:2' => $post -> comment_status,
+		'rdfs:label' => $post -> post_name,
+		'dcterms:modified' => $post -> post_modified,
+		'undefined:3' => $post -> post_type);
+	
+		// initializes the "context" in array
+		// see : http://json-ld.org/spec/latest/json-ld/#the-context
+		$context = array("dcterms" => "http://purl.org/dc/terms",
+		"foaf" => "http://xmlns.com/foaf/0.1",
+		"owl" => "http://www.w3.org/2002/07/owl#",
+		"rdf" =>"http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+		"rdfs" => "http://www.w3.org/2000/01/rdf-schema#",
+		"sioc" => "http://rdfs.org/sioc/ns#",
+		"vs" => "http://www.w3.org/2003/06/sw-vocab-status/ns#",
+		"wot" => "http://xmlns.com/wot/0.1",
+		"xsd" => "http://www.w3.org/2001/XMLSchema#");
+		
+		$retour = array('@context' => $context, '@graph' => $filteredPost);
+		
 		// returns json-ld formatted post
-		return $post;
+		return rest_ensure_response($retour);
 
 	}
 
 	
 	public function wpldp_toto2()
 	{
-		
+		echo 'toto2';
+		return 0;
 	}
 	
 	// fonction test 3
