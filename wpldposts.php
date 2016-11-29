@@ -8,6 +8,7 @@
  */
  
 // TODO : repartir sur plusieurs fichiers ? => includes.php
+// TODO : créer fonction setheaders()
 
 namespace wpldp;
  
@@ -29,28 +30,9 @@ class wpldp
 		new wpldp_includes();
 		
     }
-    
-
-
 	
-	/*
-	$the_slug = 'my_slug';
-$args = array(
-  'name'        => $the_slug,
-  'post_type'   => 'post',
-  'post_status' => 'publish',
-  'numberposts' => 1
-);
-$my_post = get_posts($args)[0];
-***************************
 
-if( $my_posts ) :
-  echo 'ID on the first post found ' . $my_post->ID
-	
-	$comments = get_comments('post_id=15'); //  get_comments('post_name='.$the_slug)
-foreach($comments as $comment) :
-	echo($comment->comment_author);
-endforeach;
+/*
 ****************************************************************
 *
 * 
@@ -121,8 +103,9 @@ $data->get_body()
 		
 	}
 	
-	
-	/* Returns all posts (in jdson-ld format ?) */
+	/*
+	 *  Returns all posts (in jdson-ld format ?)
+	 */
 	 
 	public function wpldp_list_posts()
 	{	 
@@ -164,7 +147,10 @@ $data->get_body()
 		return rest_ensure_response($retour);
 	}
 
-	// fonction test 1
+	/* 
+	 * Returns selected details of specified post (from postname)
+	 */
+
 	public function wpldp_detail_post($data)
 	{
 		
@@ -177,6 +163,16 @@ $data->get_body()
 		// gets post from its slug
 		$post = get_page_by_path($data['slug'],OBJECT,'post');
 		
+		/* Autre solution :
+		 * 
+		 * $args = array(
+		 * 'name'        => $slug,
+		 * 'post_type'   => 'post',
+		 * 'post_status' => 'publish',
+		 * 'numberposts' => 1);
+		 * 
+		 * $post = get_posts($args)[0]; */
+	
 		// keeps only useful properties, link them to rdf <properties>, stores them in array
 		$filteredPost = array(
 		'sioc:User' => $post -> post_author,
@@ -209,9 +205,49 @@ $data->get_body()
 	}
 
 	
-	public function wpldp_getcomments()
+	public function wpldp_getcomments($data)
 	{
-		return 'GET COMMENTS';
+		// sets headers
+		//wpldp_setheaders();
+		header('Access-Control-Allow-Origin:"*"', true);
+		
+		// gets slug from args
+		$slug = $data['slug'];
+		
+		$comments = get_comments('post_name='.$slug);
+
+		// keeps only useful properties, link them to rdf <properties>, stores them in array
+		$cpt = -1;
+		foreach($comments as $comment)
+		{
+			$cpt = $cpt + 1;
+			
+			$filteredComments[$cpt] = array(
+				'undefined:commentid' => $comment->comment_ID,
+				// TODO : choisir entre author et ID pour sioc:user
+				//'sioc:User' => $comment->comment_author,
+				'sioc:User' => $comment->user_id,
+				'dcterms:created' => $comment->comment_date,
+				'dcterms:text' => $comment -> comment_content);
+		}
+		
+		// initializes the "context" in array
+		// see : http://json-ld.org/spec/latest/json-ld/#the-context
+		$context = array("dcterms" => "http://purl.org/dc/terms",
+		"foaf" => "http://xmlns.com/foaf/0.1",
+		"owl" => "http://www.w3.org/2002/07/owl#",
+		"rdf" =>"http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+		"rdfs" => "http://www.w3.org/2000/01/rdf-schema#",
+		"sioc" => "http://rdfs.org/sioc/ns#",
+		"vs" => "http://www.w3.org/2003/06/sw-vocab-status/ns#",
+		"wot" => "http://xmlns.com/wot/0.1",
+		"xsd" => "http://www.w3.org/2001/XMLSchema#");
+		
+		$retour = array('@context' => $context, '@graph' => $filteredComments);
+		
+		// returns json-ld formatted post
+		return rest_ensure_response($retour);
+		
 	}
 	
 	// fonction test 3

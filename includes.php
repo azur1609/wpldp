@@ -26,6 +26,13 @@ class wpldp_includes
 
 	}
 
+	// Sets headers
+	public function wpldp_setheaders()
+	{
+		header('Access-Control-Allow-Origin:"*"', true);
+		return 0;
+	}
+
 }
 
 ?>
