@@ -94,15 +94,20 @@ $data->get_body()
 		'methods' => 'GET',
 		'callback' => array($this, 'wpldp_list_posts') ));
 		
-		/* Registers a route for fonction test 1*/
+		/* Registers a route for fonction post_details/
 		register_rest_route( 'ldp', '/posts/(?P<slug>[a-zA-Z0-9-]+)', array(
 		'methods' => 'GET',
 		'callback' => array($this, 'wpldp_detail_post') ));
 		
-		/* Registers a route for fonction test 2*/
+		/* Registers a route for fonction */
 		register_rest_route( 'ldp', '/posts/(?P<slug>[a-zA-Z0-9-]+)/comments/', array(
 		'methods' => 'GET',
-		'callback' => array($this, 'wpldp_toto2') ));
+		'callback' => array($this, 'wpldp_getcomments') ));
+		
+		/* Registers a route for fonction */
+		register_rest_route( 'ldp', '/posts/(?P<slug>[a-zA-Z0-9-]+)/comments/', array(
+		'methods' => 'POST',
+		'callback' => array($this, 'wpldp_postcomments') ));
 		
 		/* Registers a route for fonction test 3*/
 		register_rest_route( 'ldp', '/toto3/', array(
@@ -204,16 +209,15 @@ $data->get_body()
 	}
 
 	
-	public function wpldp_toto2()
+	public function wpldp_getcomments()
 	{
-		echo 'toto2';
-		return 0;
+		return 'GET COMMENTS';
 	}
 	
 	// fonction test 3
-	public function wpldp_toto3()
+	public function wpldp_postcomments()
 	{
-		
+		return 'POST COMMENTS';
 	}
 	
 	// fonction test 4
