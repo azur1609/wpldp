@@ -30,7 +30,8 @@ class wpldp
 		new wpldp_includes();
 		
     }
-	
+
+
 
 /*
 ****************************************************************
@@ -111,7 +112,7 @@ $data->get_body()
 	{	 
 		
 		// sets headers
-		header('Access-Control-Allow-Origin:"*"', true);
+		wpldp_setheaders();
 		
 		// lists all posts in array
 		$tabPosts = get_posts();
@@ -155,7 +156,7 @@ $data->get_body()
 	{
 		
 		// sets headers
-		header('Access-Control-Allow-Origin:"*"', true);
+		wpldp_setheaders();
 		
 		// gets slug from args
 		$slug = $data['slug'];
@@ -208,8 +209,7 @@ $data->get_body()
 	public function wpldp_getcomments($data)
 	{
 		// sets headers
-		//wpldp_setheaders();
-		header('Access-Control-Allow-Origin:"*"', true);
+		wpldp_setheaders();
 		
 		// gets slug from args
 		$slug = $data['slug'];
@@ -250,16 +250,47 @@ $data->get_body()
 		
 	}
 	
-	// fonction test 3
+	// 
 	public function wpldp_postcomments()
 	{
+	
+		/* $time = current_time('mysql');
+
+		$data = array(
+		'comment_post_ID' => 1,
+		'comment_author' => 'admin',
+		'comment_author_email' => 'admin@admin.com',
+		'comment_author_url' => 'http://',
+		'comment_content' => 'content here',
+		'comment_type' => '',
+		'comment_parent' => 0,
+		'user_id' => 1,
+		'comment_author_IP' => '127.0.0.1',
+		'comment_agent' => 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.10) Gecko/2009042316 Firefox/3.0.10 (.NET CLR 3.5.30729)',
+		'comment_date' => $time,
+		'comment_approved' => 1,
+		);
+
+		wp_insert_comment($data);
+
+		$data->get_body() */
+		
 		return 'POST COMMENTS';
+		
 	}
 	
+
+	function wpldp_test()
+	{
+		return 'Test main';
+	}
+
 	// fonction test 4
 	public function wpldp_toto4()
 	{
-
+		echo wpldp_inc_test();
+		echo wpldp_test();
+		return 0;
 	}
 
 }

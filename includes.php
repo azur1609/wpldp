@@ -9,29 +9,22 @@ class wpldp_includes
 {
 
     public function __construct()
-
     {
-		//echo 'Constructeur fichier : includes.php classe : wpldposts_test';
+		
+		// sets headers
+		function wpldp_setheaders()
+		{
+			header('Content-Type:"application/ld+json"', true);
+			header('Access-Control-Allow-Origin:"*"', true);
+		}
+		
+		function wpldp_inc_test()
+		{
+			return 'Test includes';	
+		}
+		
+		
     }
-
-	public function wpldposts_getposts()
-	{
-		// A utiliser comme modele pour criteres de tri/filtres getpost()
-		$data = get_posts( array(
-			'post_type'      => 'candy',
-			'post_status'    => 'publish',
-			'posts_per_page' => 20,
-		) );
-		return $data;
-
-	}
-
-	// Sets headers
-	public function wpldp_setheaders()
-	{
-		header('Access-Control-Allow-Origin:"*"', true);
-		return 0;
-	}
 
 }
 
