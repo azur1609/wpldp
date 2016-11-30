@@ -8,7 +8,7 @@
  */
  
 // TODO : repartir sur plusieurs fichiers ? => includes.php
-// TODO : créer fonction setheaders()
+// TODO : créer fonction set_context();
 
 namespace wpldp;
  
@@ -56,34 +56,26 @@ class wpldp
 		/* Registers a route for fonction */
 		register_rest_route( 'ldp', '/posts/(?P<slug>[a-zA-Z0-9-]+)/comments/', array(
 		'methods' => 'GET',
-		'callback' => array($this, 'wpldp_getcomments') ));
+		'callback' => array($this, 'wpldp_get_comments') ));
 		
 		/* Registers a route for fonction */
 		register_rest_route( 'ldp', '/posts/(?P<slug>[a-zA-Z0-9-]+)/comments/', array(
 		'methods' => 'POST',
-		'callback' => array($this, 'wpldp_postcomments') ));
-		
-		/* Registers a route for fonction test 3*/
-		register_rest_route( 'ldp', '/toto3/', array(
-		'methods' => 'GET',
-		'callback' => array($this, 'wpldp_toto3') ));
-		
-		/* Registers a route for fonction test 4*/
-		register_rest_route( 'ldp', '/toto4/', array(
-		'methods' => 'GET',
-		'callback' => array($this, 'wpldp_toto4') ));
+		'callback' => array($this, 'wpldp_post_comments') ));
 		
 	}
 	
 	/*
 	 *  Returns all posts (in jdson-ld format ?)
+	 * 	method : GET
+	 * 	url : http://www.yoursite.com/wp-json/ldp/posts/
 	 */
 	 
 	public function wpldp_list_posts()
 	{	 
 		
 		// sets headers
-		wpldp_setheaders();
+		wpldp_set_headers();
 		
 		// lists all posts in array
 		$tabPosts = get_posts();
@@ -99,15 +91,7 @@ class wpldp
 		
 		// initializes the "context" in array
 		// see : http://json-ld.org/spec/latest/json-ld/#the-context
-		$context = array("dcterms" => "http://purl.org/dc/terms",
-		"foaf" => "http://xmlns.com/foaf/0.1",
-		"owl" => "http://www.w3.org/2002/07/owl#",
-		"rdf" =>"http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-		"rdfs" => "http://www.w3.org/2000/01/rdf-schema#",
-		"sioc" => "http://rdfs.org/sioc/ns#",
-		"vs" => "http://www.w3.org/2003/06/sw-vocab-status/ns#",
-		"wot" => "http://xmlns.com/wot/0.1",
-		"xsd" => "http://www.w3.org/2001/XMLSchema#");
+		$context = wpldp_set_context();
 		
 		// initializes graph array, then stores posts inside the array
 		$graph = array("@id" => "http://ldp.happy-dev.fr/ldp/posts/",
@@ -121,13 +105,15 @@ class wpldp
 
 	/* 
 	 * Returns selected details of specified post (from postname)
+	 * method : GET
+	 * url : http://www.yoursite.com/wp-json/ldp/posts/some-post-slug/
 	 */
 
 	public function wpldp_detail_post($data)
 	{
 		
 		// sets headers
-		wpldp_setheaders();
+		wpldp_set_headers();
 		
 		// gets slug from args
 		$slug = $data['slug'];
@@ -159,16 +145,9 @@ class wpldp
 	
 		// initializes the "context" in array
 		// see : http://json-ld.org/spec/latest/json-ld/#the-context
-		$context = array("dcterms" => "http://purl.org/dc/terms",
-		"foaf" => "http://xmlns.com/foaf/0.1",
-		"owl" => "http://www.w3.org/2002/07/owl#",
-		"rdf" =>"http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-		"rdfs" => "http://www.w3.org/2000/01/rdf-schema#",
-		"sioc" => "http://rdfs.org/sioc/ns#",
-		"vs" => "http://www.w3.org/2003/06/sw-vocab-status/ns#",
-		"wot" => "http://xmlns.com/wot/0.1",
-		"xsd" => "http://www.w3.org/2001/XMLSchema#");
+		$context = wpldp_set_context();
 		
+		// formats data
 		$retour = array('@context' => $context, '@graph' => $filteredPost);
 		
 		// returns json-ld formatted post
@@ -176,11 +155,16 @@ class wpldp
 
 	}
 
-	
-	public function wpldp_getcomments($data)
+	/*
+	 * returns comment(s) for a given post
+	 * method : GET
+	 * url : http://www.yoursite.com/wp-json/ldp/posts/some-post-slug/comments/
+	 */
+	 
+	public function wpldp_get_comments($data)
 	{
 		// sets headers
-		wpldp_setheaders();
+		wpldp_set_headers();
 		
 		// gets slug from args
 		$slug = $data['slug'];
@@ -204,16 +188,8 @@ class wpldp
 		
 		// initializes the "context" in array
 		// see : http://json-ld.org/spec/latest/json-ld/#the-context
-		$context = array("dcterms" => "http://purl.org/dc/terms",
-		"foaf" => "http://xmlns.com/foaf/0.1",
-		"owl" => "http://www.w3.org/2002/07/owl#",
-		"rdf" =>"http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-		"rdfs" => "http://www.w3.org/2000/01/rdf-schema#",
-		"sioc" => "http://rdfs.org/sioc/ns#",
-		"vs" => "http://www.w3.org/2003/06/sw-vocab-status/ns#",
-		"wot" => "http://xmlns.com/wot/0.1",
-		"xsd" => "http://www.w3.org/2001/XMLSchema#");
-		
+		$context = wpldp_set_context();
+			
 		$retour = array('@context' => $context, '@graph' => $filteredComments);
 		
 		// returns json-ld formatted post
@@ -221,47 +197,103 @@ class wpldp
 		
 	}
 	
-	// 
-	public function wpldp_postcomments()
-	{
-	
-		/* $time = current_time('mysql');
+	/*
+	 * allows people to write comment for a given post
+	 * method : POST
+	 * url : http://www.yoursite.com/wp-json/ldp/posts/some-post-slug/comments/
+	 */
 
-		$data = array(
-		'comment_post_ID' => 1,
-		'comment_author' => 'admin',
-		'comment_author_email' => 'admin@admin.com',
-		'comment_author_url' => 'http://',
-		'comment_content' => 'content here',
-		'comment_type' => '',
-		'comment_parent' => 0,
-		'user_id' => 1,
-		'comment_author_IP' => '127.0.0.1',
-		'comment_agent' => 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.10) Gecko/2009042316 Firefox/3.0.10 (.NET CLR 3.5.30729)',
+	// TODO : ajouter validation des données (isset ?)
+	// TODO : revoir la structure (if ? while ?)
+	public function wpldp_post_comments($data)
+	{
+		
+		/*
+		 * Donnees attendues :
+		 * 
+		 * slug post (rdfs:label)
+		 * auteur commentaire (sioc:user)
+		 * 'dcterms:created' (date commentaire)
+		 * 'dcterms:text' (contenu commentaire)
+		 * email auteur (opt) =
+		 * url auteur (opt) =
+		 * 
+		 */
+		
+		// declarations
+		$retour = null;
+		$missingData = false;
+
+		// gets post_id from slug contained in POST request
+		if (isset($data['rdfs:label']))
+		{
+			$comment_post_id = wpldp_get_postid_by_slug($data['rdfs:label']);
+		}
+		else {$missingData = true; echo 'error : missing slug';}
+		
+		// gets poster id
+		// TODO : envisager une creation de user "à la volée" selon sioc:user ou compte invité
+		$comment_user_id = 2;
+		$tabUser = get_user_by('id', $comment_user_id);
+		
+		// gets user infos from id
+		// TODO : envisager une creation de user "à la volée" selon sioc:user ou compte invité
+		$comment_author = $tabUser->display_name;
+		$comment_author_email = $tabUser->user_email;
+		$comment_author_url = $tabUser->user_url;
+		
+		// gets content of the comment
+		// TODO : ATTENTION à la validation des données ici (balises!)
+		if (isset($data['dcterms:text']))
+		{
+			$comment_content = $data['dcterms:text'];
+		}
+		else {$missingData = true; echo 'error : missing content';}
+
+		// sets various properties
+		// TODO : a définir
+		$comment_type = '';
+		$comment_parent = 0;
+		
+		// gets poster IP and HTTP_USER_AGENT
+		$comment_author_IP = $_SERVER['REMOTE_ADDR'];
+		$comment_agent = $_SERVER['HTTP_USER_AGENT'];
+		
+		// gets current time
+		$time = current_time('mysql');
+
+		// formats comment data
+		$tabComment = array(
+		'comment_post_ID' => $comment_post_id,
+		'comment_author' => $comment_author,
+		'comment_author_email' => $comment_author_email,
+		'comment_author_url' => $comment_author_url,
+		'comment_content' => $comment_content,
+		'comment_type' => $comment_type,
+		'comment_parent' => $comment_parent,
+		'user_id' => $comment_user_id,
+		'comment_author_IP' => $comment_author_IP,
+		'comment_agent' => $comment_agent,
 		'comment_date' => $time,
 		'comment_approved' => 1,
 		);
-
-		wp_insert_comment($data);
-
-		$data->get_body() */
 		
-		return 'POST COMMENTS';
+		// final validation test(s)
+		if ($missingData)
 		
-	}
+		{
+			$retour = 'Missing data !';
+			return null;
+		}
+		
+		else
+		
+		{
+			// inserts comment if validation tests passed, then displays data for debugging purpose
+			wp_insert_comment($tabComment);
+			return $tabComment;
+		}
 	
-
-	function wpldp_test()
-	{
-		return 'Test main';
-	}
-
-	// fonction test 4
-	public function wpldp_toto4()
-	{
-		echo wpldp_inc_test();
-		echo wpldp_test();
-		return 0;
 	}
 
 }
