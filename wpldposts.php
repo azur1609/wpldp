@@ -209,15 +209,11 @@ class wpldp
 	{
 		
 		/*
-		 * Donnees attendues :
+		 * parameters :
 		 * 
-		 * slug post (rdfs:label)
-		 * auteur commentaire (sioc:user)
-		 * 'dcterms:created' (date commentaire)
-		 * 'dcterms:text' (contenu commentaire)
-		 * email auteur (opt) =
-		 * url auteur (opt) =
-		 * 
+		 * 'rdfs:label' (slug)
+		 * 'sioc:user' (author)
+		 * 'dcterms:text' (content)
 		 */
 		
 		// declarations
