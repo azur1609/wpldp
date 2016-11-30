@@ -48,7 +48,7 @@ class wpldp
 		'methods' => 'GET',
 		'callback' => array($this, 'wpldp_list_posts') ));
 		
-		/* Registers a route for fonction post_details/
+		/* Registers a route for fonction post_details */
 		register_rest_route( 'ldp', '/posts/(?P<slug>[a-zA-Z0-9-]+)', array(
 		'methods' => 'GET',
 		'callback' => array($this, 'wpldp_detail_post') ));
