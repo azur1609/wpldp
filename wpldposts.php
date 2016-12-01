@@ -20,6 +20,7 @@ require_once('includes.php');
 class wpldp
 {
 	
+
 	/* default constructor */
     public function __construct()
     {
@@ -27,8 +28,7 @@ class wpldp
         add_action('rest_api_init', array($this, 'wpldp_register_routes')) ;
 		
         include_once plugin_dir_path( __FILE__ ).'/includes.php';
-		new wpldp_includes();
-		
+		new wpldp_includes();	
     }
 
 	/* Registers custom routes (comments for each route are listed above)
@@ -39,7 +39,10 @@ class wpldp
 	 * "/wp-json/ is the default route for requests to the embedded WP rest api
 	 * "/ldp" is the first URL segment after core prefix. Must be unique to our plugin
 	 * "/custom" is the route to some function */ 
-	 
+
+
+
+
 	public function wpldp_register_routes()
     {
 
@@ -61,7 +64,21 @@ class wpldp
 		/* Registers a route for fonction */
 		register_rest_route( 'ldp', '/posts/(?P<slug>[a-zA-Z0-9-]+)/comments/', array(
 		'methods' => 'POST',
+		'callback' => array($this, 'wpldp_post_comments') ));		
+		/* Registers a route for fonction */
+		register_rest_route( 'ldp', '/posts/(?P<slug>[a-zA-Z0-9-]+)/comments/', array(
+		'methods' => 'OPTIONS',
 		'callback' => array($this, 'wpldp_post_comments') ));
+
+		/* Registers a route for listing posts for testing purposes (without headers) */
+		register_rest_route( 'ldp', '/jonathan/', array(
+		'methods' => 'GET',
+		'callback' => array($this, 'wpldp_test_jonathan') ));
+		
+		/* Registers a route for listing posts for testing purposes (without headers) */
+		register_rest_route( 'ldp', '/test/', array(
+		'methods' => 'GET',
+		'callback' => array($this, 'wpldp_test_test') ));
 		
 	}
 	
@@ -93,14 +110,15 @@ class wpldp
 		// see : http://json-ld.org/spec/latest/json-ld/#the-context
 		$context = wpldp_set_context();
 		
-		// initializes graph array, then stores posts inside the array
-		$graph = array("@id" => "http://ldp.happy-dev.fr/ldp/posts/",
-				"@type" => "http://www.w3.org/ns/ldp#BasicContainer",
-				"http://www.w3.org/ns/ldp#contains" => $posts);
+		// stores posts in array
+		$graph = wpldp_get_container_graph($posts);
 		
+		// formats response
 		$retour = array('@context' => $context, '@graph' => $graph);
 		
+		// checks response then returns
 		return rest_ensure_response($retour);
+		
 	}
 
 	/* 
@@ -290,6 +308,16 @@ class wpldp
 			return $tabComment;
 		}
 	
+	}
+	
+	public function wpldp_test_jonathan()
+	{	 
+		return ('fonction de jonathan');	
+	}	
+	
+	public function wpldp_test_test()
+	{	 
+		return ('fonction de test');
 	}
 
 }
