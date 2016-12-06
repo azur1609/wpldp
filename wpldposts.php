@@ -122,7 +122,7 @@ class wpldp
 		$graph = wpldp_get_container_graph($posts);
 		
 		// formats response
-		$retour = array('@context' => $context, '@graph' => $graph);
+		$retour = array('@context' => $context, '@graph' => array($graph));
 		
 		// checks response then returns
 		return rest_ensure_response($retour);
@@ -175,7 +175,7 @@ class wpldp
 		$context = wpldp_get_context();
 		
 		// formats data
-		$retour = array('@context' => $context, '@graph' => $filteredPost);
+		$retour = array('@context' => $context, '@graph' => array($filteredPost));
 		
 		// returns json-ld formatted post
 		return rest_ensure_response($retour);
@@ -333,6 +333,14 @@ class wpldp
 	
 	public function wpldp_post_comments($data)
 	{
+		
+		/*
+		 * parameters :
+		 * 
+		 * 'rdfs:label' (slug)
+		 * 'sioc:user' (author)
+		 * 'dcterms:text' (content)
+		 */
 
 		// declarations
 		$missingData = false;
