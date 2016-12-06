@@ -60,6 +60,7 @@ class wpldp
     {
 
 		wpldp_debug('wpldp_register_routes');
+		
 		/* Registers a route for listing posts */
 		register_rest_route( 'ldp', '/posts/', array(
 		'methods' => 'GET',
@@ -78,7 +79,7 @@ class wpldp
 		/* Registers a route for fonction */
 		register_rest_route( 'ldp', '/posts/(?P<slug>[a-zA-Z0-9-]+)/comments/', array(
 		'methods' => 'POST',
-		'callback' => array($this, 'wpldp_test_comments') ));		
+		'callback' => array($this, 'wpldp_post_comments') ));		
 		
 		/* Registers a route for fonction */
 		//register_rest_route( 'ldp', '/posts/(?P<slug>[a-zA-Z0-9-]+)/comments/', array(
@@ -234,7 +235,8 @@ class wpldp
 
 	// TODO : ajouter validation des données (isset ?)
 	// TODO : revoir la structure (if ? while ?)
-	public function wpldp_post_comments($data)
+	
+	public function wpldp_orig_post_comments($data)
 	{
 
 		wpldp_debug('wpldp_post_comments');
@@ -324,69 +326,87 @@ class wpldp
 	}
 	
 	/*
-	 * returns allowed methods for comments to javascripts/browsers
-	 * method : OPTIONS
+	 * allows people to write comment for a given post
+	 * methods : POST, OPTIONS
 	 * url : http://www.yoursite.com/wp-json/ldp/posts/some-post-slug/comments/
 	 */
-
-	public function wpldp_test_comments($data)
+	
+	public function wpldp_post_comments($data)
 	{
 
+		// declarations
+		$missingData = false;
+
+		// sets headers
 		wpldp_default_headers();
 		header('Access-Control-Allow-Origin:*', true);
 		
-		//$response = rest_ensure_response( $data );
-		//$response->header( 'Access-Control-Allow-Headers:Content-Type', true );
+		// gets objects
+		$body = json_decode($data->get_body());
+		$context = $body->{'@context'};
+		$graph = $body->{'@graph'};
 		
-		wpldp_debug('test_comment : --- intermediaire ---');
+		// gets @graph number 0 entrie, stores in array
+		$graph_0 = $graph[0];
 		
-		// declarations
-		$retour = null;
-		$missingData = false;
+		// gets post_id from slug
+		$comment_post_id = wpldp_get_postid_by_slug($graph_0->{'http://www.w3.org/2000/01/rdf-schema#label'});
+		// probleme : le JS traduit 'rdfs:label' par son URI
+		// écrire une fonction qui récupère les bons URI ? ou inclure ces derniers dans la présente fonction ?
+		wpldp_debug('id article : ' . $comment_post_id);
+
+		// gets poster id
+		// TODO : envisager une creation de user "à la volée" selon sioc:user ou compte invité
+		// Toute une réflexion à faire sur la gestion des utilisateurs, pour les posts/comments "externes"
+		$comment_user_id = 2;
+		$tabUser = get_user_by('id', $comment_user_id);
+				
+		// gets user infos from id
+		$comment_author = $tabUser->display_name;
+		$comment_author_email = $tabUser->user_email;
+		$comment_author_url = $tabUser->user_url;
+		wpldp_debug('auteur : ' . $comment_author);
+		
+		// gets content of the comment
+		// TODO : ATTENTION à la validation des données ici (balises!)
+		$comment_content = $graph_0->{'dcterms:text'};		
+		wpldp_debug('contenu : ' . $comment_content);
+		
+		// sets various properties
+		// TODO : a définir
+		$comment_type = '';
+		$comment_parent = 0;
+		
+		// gets poster IP and HTTP_USER_AGENT
+		$comment_author_IP = $_SERVER['REMOTE_ADDR'];
+		$comment_agent = $_SERVER['HTTP_USER_AGENT'];
+		
+		// gets current time
+		$time = current_time('mysql');
+		
+		// formats comment data
+		$tabComment = array(
+		'comment_post_ID' => $comment_post_id,
+		'comment_author' => $comment_author,
+		'comment_author_email' => $comment_author_email,
+		'comment_author_url' => $comment_author_url,
+		'comment_content' => $comment_content,
+		'comment_type' => $comment_type,
+		'comment_parent' => $comment_parent,
+		'user_id' => $comment_user_id,
+		'comment_author_IP' => $comment_author_IP,
+		'comment_agent' => $comment_agent,
+		'comment_date' => $time,
+		'comment_approved' => 1,
+		);
+		
+		// creates comment
+		// TODO: validation des données etc.
+		wp_insert_comment($tabComment);
 	
+		// ALTERNATE ENDING : print_r($data->get_body()); exit(0);
+		return($data);
 
-		
-			$body = $data->get_body();
-			print_r($body);
-			
-			$obj = json_decode($body);
-			
-			$test = $obj->{'@graph'};
-			
-			$tabGraph = $test[0];
-			
-			$txt = $tabGraph->{'dcterms:text'};
-						
-			wpldp_debug($txt);
-			
-
-
-		
-		
-		//echo 'merde !';
-		
-		
-		// recup par tableau d'un parametre de $data
-		//$contenu = $data['body'];
-		//wpldp_debug($contenu);
-		
-		// dump de $data
-		//$contenu = var_dump($data);
-		//wpldp_debug($contenu);
-		
-		// echo de $data
-		//$contenu = echo($data);
-		//wpldp_debug($contenu);
-		
-		// print_r $data
-		//$contenu = print_r($data);
-		//wpldp_debug($contenu);
-
-		wpldp_debug('fin test_comment');
-		
-		exit(0);
-		//$tabTest = array('result' => 'ok',);
-		//return rest_ensure_response($tabTest);
 	}
 	
 }
