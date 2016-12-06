@@ -11,17 +11,25 @@ class wpldp_includes
     public function __construct()
     {
 		
-		// sets headers
-		function wpldp_set_headers()
+		// test function for debugging purpose
+		function wpldp_debug($text)
+		{
+			$command = 'echo `date` : \''. $text . '\'>> /tmp/wpldp_debug.log';
+			exec($command);
+		}
+		
+		// sets default headers
+		function wpldp_default_headers()
 		{
 			header('access-control-allow-credentials', false);
 			header('Content-Type:application/ld+json', true);
+			header('Access-Control-Allow-Methods:POST,GET,OPTIONS', true);
 			header('Access-Control-Allow-Origin:*', true);
 		}
 		
 		// returns context to be set for posts/post_details/view_comments/post_comment etc.
 		// see : http://json-ld.org/spec/latest/json-ld/#the-context
-		function wpldp_set_context()
+		function wpldp_get_context()
 		{
 			return array("dcterms" => "http://purl.org/dc/terms",
 			"foaf" => "http://xmlns.com/foaf/0.1",

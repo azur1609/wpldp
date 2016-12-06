@@ -1,14 +1,14 @@
 <?php
 /*
  * Plugin Name: WpLdp
- * Plugin URI: https://mizar.ursa.wares.fr/wordpress/
+ * Plugin URI: https://wpldp.wares.fr/
  * Description: This is a plugin which aims to emulate the default caracteristics of a Linked Data Platform compatible server
  * Version: 0.1
  * License: GPL2
  */
  
 // TODO : repartir sur plusieurs fichiers ? => includes.php
-// TODO : créer fonction set_context();
+// TODO : créer fonction get_context();
 
 namespace wpldp;
  
@@ -19,17 +19,33 @@ require_once('includes.php');
 
 class wpldp
 {
-	
 
 	/* default constructor */
     public function __construct()
     {
+	
+		/* loads additionnal wpldp functions */
+		include_once plugin_dir_path( __FILE__ ).'/includes.php';
+		new wpldp_includes();
+		
 		/* calls a function to register routes at the Rest API initialisation */
         add_action('rest_api_init', array($this, 'wpldp_register_routes')) ;
-		
-        include_once plugin_dir_path( __FILE__ ).'/includes.php';
-		new wpldp_includes();	
+        
+        /* calls a function to set special header when receiving OPTIONS request (wpldp_post_comments) */
+        add_filter('rest_post_dispatch', array($this, 'wpldp_ac_allow_headers'));
+        
     }
+
+	// sets special header for function wpldp_post_comments
+	public function wpldp_ac_allow_headers(\WP_REST_Response $result)
+	{
+		if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS')
+		{
+			$result->header('Access-Control-Allow-Headers', 'Authorization, Content-Type', true);
+		}
+		return $result;
+	}
+	
 
 	/* Registers custom routes (comments for each route are listed above)
 	 * 
@@ -38,14 +54,12 @@ class wpldp
 	 * "yoursite.com/wordpress" is the main url
 	 * "/wp-json/ is the default route for requests to the embedded WP rest api
 	 * "/ldp" is the first URL segment after core prefix. Must be unique to our plugin
-	 * "/custom" is the route to some function */ 
-
-
-
-
+	 * "/custom" is the route to some function */
+	 
 	public function wpldp_register_routes()
     {
 
+		wpldp_debug('wpldp_register_routes');
 		/* Registers a route for listing posts */
 		register_rest_route( 'ldp', '/posts/', array(
 		'methods' => 'GET',
@@ -64,22 +78,13 @@ class wpldp
 		/* Registers a route for fonction */
 		register_rest_route( 'ldp', '/posts/(?P<slug>[a-zA-Z0-9-]+)/comments/', array(
 		'methods' => 'POST',
-		'callback' => array($this, 'wpldp_post_comments') ));		
+		'callback' => array($this, 'wpldp_test_comments') ));		
+		
 		/* Registers a route for fonction */
-		register_rest_route( 'ldp', '/posts/(?P<slug>[a-zA-Z0-9-]+)/comments/', array(
-		'methods' => 'OPTIONS',
-		'callback' => array($this, 'wpldp_post_comments') ));
+		//register_rest_route( 'ldp', '/posts/(?P<slug>[a-zA-Z0-9-]+)/comments/', array(
+		//'methods' => 'PUT',
+		//'callback' => array($this, 'wpldp_put_comments') ));
 
-		/* Registers a route for listing posts for testing purposes (without headers) */
-		register_rest_route( 'ldp', '/jonathan/', array(
-		'methods' => 'GET',
-		'callback' => array($this, 'wpldp_test_jonathan') ));
-		
-		/* Registers a route for listing posts for testing purposes (without headers) */
-		register_rest_route( 'ldp', '/test/', array(
-		'methods' => 'GET',
-		'callback' => array($this, 'wpldp_test_test') ));
-		
 	}
 	
 	/*
@@ -91,8 +96,10 @@ class wpldp
 	public function wpldp_list_posts()
 	{	 
 		
+		wpldp_debug('wpldp_list_posts');
+		
 		// sets headers
-		wpldp_set_headers();
+		wpldp_default_headers();
 		
 		// lists all posts in array
 		$tabPosts = get_posts();
@@ -108,7 +115,7 @@ class wpldp
 		
 		// initializes the "context" in array
 		// see : http://json-ld.org/spec/latest/json-ld/#the-context
-		$context = wpldp_set_context();
+		$context = wpldp_get_context();
 		
 		// stores posts in array
 		$graph = wpldp_get_container_graph($posts);
@@ -129,9 +136,10 @@ class wpldp
 
 	public function wpldp_detail_post($data)
 	{
+		wpldp_debug('wpldp_detail_post');
 		
 		// sets headers
-		wpldp_set_headers();
+		wpldp_default_headers();
 		
 		// gets slug from args
 		$slug = $data['slug'];
@@ -163,7 +171,7 @@ class wpldp
 	
 		// initializes the "context" in array
 		// see : http://json-ld.org/spec/latest/json-ld/#the-context
-		$context = wpldp_set_context();
+		$context = wpldp_get_context();
 		
 		// formats data
 		$retour = array('@context' => $context, '@graph' => $filteredPost);
@@ -181,8 +189,11 @@ class wpldp
 	 
 	public function wpldp_get_comments($data)
 	{
+		
+		wpldp_debug('wpldp_get_comments');
+		
 		// sets headers
-		wpldp_set_headers();
+		wpldp_default_headers();
 		
 		// gets slug from args
 		$slug = $data['slug'];
@@ -206,7 +217,7 @@ class wpldp
 		
 		// initializes the "context" in array
 		// see : http://json-ld.org/spec/latest/json-ld/#the-context
-		$context = wpldp_set_context();
+		$context = wpldp_get_context();
 			
 		$retour = array('@context' => $context, '@graph' => $filteredComments);
 		
@@ -225,7 +236,9 @@ class wpldp
 	// TODO : revoir la structure (if ? while ?)
 	public function wpldp_post_comments($data)
 	{
-		
+
+		wpldp_debug('wpldp_post_comments');
+
 		/*
 		 * parameters :
 		 * 
@@ -310,16 +323,72 @@ class wpldp
 	
 	}
 	
-	public function wpldp_test_jonathan()
-	{	 
-		return ('fonction de jonathan');	
-	}	
-	
-	public function wpldp_test_test()
-	{	 
-		return ('fonction de test');
-	}
+	/*
+	 * returns allowed methods for comments to javascripts/browsers
+	 * method : OPTIONS
+	 * url : http://www.yoursite.com/wp-json/ldp/posts/some-post-slug/comments/
+	 */
 
+	public function wpldp_test_comments($data)
+	{
+
+		wpldp_default_headers();
+		header('Access-Control-Allow-Origin:*', true);
+		
+		//$response = rest_ensure_response( $data );
+		//$response->header( 'Access-Control-Allow-Headers:Content-Type', true );
+		
+		wpldp_debug('test_comment : --- intermediaire ---');
+		
+		// declarations
+		$retour = null;
+		$missingData = false;
+	
+
+		
+			$body = $data->get_body();
+			print_r($body);
+			
+			$obj = json_decode($body);
+			
+			$test = $obj->{'@graph'};
+			
+			$tabGraph = $test[0];
+			
+			$txt = $tabGraph->{'dcterms:text'};
+						
+			wpldp_debug($txt);
+			
+
+
+		
+		
+		//echo 'merde !';
+		
+		
+		// recup par tableau d'un parametre de $data
+		//$contenu = $data['body'];
+		//wpldp_debug($contenu);
+		
+		// dump de $data
+		//$contenu = var_dump($data);
+		//wpldp_debug($contenu);
+		
+		// echo de $data
+		//$contenu = echo($data);
+		//wpldp_debug($contenu);
+		
+		// print_r $data
+		//$contenu = print_r($data);
+		//wpldp_debug($contenu);
+
+		wpldp_debug('fin test_comment');
+		
+		exit(0);
+		//$tabTest = array('result' => 'ok',);
+		//return rest_ensure_response($tabTest);
+	}
+	
 }
 
 new wpldp();
