@@ -79,10 +79,15 @@ class wpldp
 		/* Registers a route for fonction */
 		register_rest_route( 'ldp', '/posts/(?P<slug>[a-zA-Z0-9-]+)/comments/', array(
 		'methods' => 'POST',
-		'callback' => array($this, 'wpldp_post_comments') ));		
+		'callback' => array($this, 'wpldp_post_comments') ));
 		
 		/* Registers a route for fonction */
-		//register_rest_route( 'ldp', '/posts/(?P<slug>[a-zA-Z0-9-]+)/comments/', array(
+		register_rest_route( 'ldp', '/test/(?P<slug>[a-zA-Z0-9-]+)/comments/', array(
+		'methods' => 'POST',
+		'callback' => array($this, 'wpldp_test_comments') ));
+		
+		/* Registers a route for fonction */
+		//register_rest_route( 'ldp', '/tests/(?P<slug>[a-zA-Z0-9-]+)/comments/', array(
 		//'methods' => 'PUT',
 		//'callback' => array($this, 'wpldp_put_comments') ));
 
@@ -411,6 +416,41 @@ class wpldp
 		// creates comment
 		// TODO: validation des données etc.
 		wp_insert_comment($tabComment);
+	
+		// ALTERNATE ENDING : print_r($data->get_body()); exit(0);
+		return($data);
+
+	}
+	
+	public function wpldp_test_comments($data)
+	{
+		
+		/*
+		 * parameters :
+		 * 
+		 * 'rdfs:label' (slug)
+		 * 'sioc:user' (author)
+		 * 'dcterms:text' (content)
+		 */
+
+		// declarations
+		$missingData = false;
+
+		// sets headers
+		wpldp_default_headers();
+		header('Access-Control-Allow-Origin:*', true);
+		
+		// gets objects
+		$body = json_decode($data->get_body());
+		$context = $body->{'@context'};
+		$graph = $body->{'@graph'};
+		
+		// converts data from @graph to Wordpress
+		$comment = wpldp_map_comment($graph);
+		
+		// creates comment
+		// TODO: validation des données etc.
+		wp_insert_comment($comment);
 	
 		// ALTERNATE ENDING : print_r($data->get_body()); exit(0);
 		return($data);
