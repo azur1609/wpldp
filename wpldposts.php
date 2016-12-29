@@ -8,7 +8,7 @@
  */
  
 // TODO : repartir sur plusieurs fichiers ? => includes.php
-// TODO : créer fonction get_context();
+// TODO : crÃ©er fonction get_context();
 
 namespace wpldp;
  
@@ -204,6 +204,9 @@ class wpldp
 		// gets slug from args
 		$slug = $data['slug'];
 		
+		// initialises $filteredComments to null
+		$filteredComments[0] = array();		
+				
 		$comments = get_comments('post_name='.$slug);
 
 		// keeps only useful properties, link them to rdf <properties>, stores them in array
@@ -238,7 +241,7 @@ class wpldp
 	 * url : http://www.yoursite.com/wp-json/ldp/posts/some-post-slug/comments/
 	 */
 
-	// TODO : ajouter validation des données (isset ?)
+	// TODO : ajouter validation des donnÃ©es (isset ?)
 	// TODO : revoir la structure (if ? while ?)
 	
 	public function wpldp_orig_post_comments($data)
@@ -266,18 +269,18 @@ class wpldp
 		else {$missingData = true; echo 'error : missing slug';}
 		
 		// gets poster id
-		// TODO : envisager une creation de user "à la volée" selon sioc:user ou compte invité
+		// TODO : envisager une creation de user "Ã  la volÃ©e" selon sioc:user ou compte invitÃ©
 		$comment_user_id = 2;
 		$tabUser = get_user_by('id', $comment_user_id);
 		
 		// gets user infos from id
-		// TODO : envisager une creation de user "à la volée" selon sioc:user ou compte invité
+		// TODO : envisager une creation de user "Ã  la volÃ©e" selon sioc:user ou compte invitÃ©
 		$comment_author = $tabUser->display_name;
 		$comment_author_email = $tabUser->user_email;
 		$comment_author_url = $tabUser->user_url;
 		
 		// gets content of the comment
-		// TODO : ATTENTION à la validation des données ici (balises!)
+		// TODO : ATTENTION Ã  la validation des donnÃ©es ici (balises!)
 		if (isset($data['dcterms:text']))
 		{
 			$comment_content = $data['dcterms:text'];
@@ -285,7 +288,7 @@ class wpldp
 		else {$missingData = true; echo 'error : missing content';}
 
 		// sets various properties
-		// TODO : a définir
+		// TODO : a dÃ©finir
 		$comment_type = '';
 		$comment_parent = 0;
 		
@@ -365,12 +368,12 @@ class wpldp
 		// gets post_id from slug
 		$comment_post_id = wpldp_get_postid_by_slug($graph_0->{'http://www.w3.org/2000/01/rdf-schema#label'});
 		// probleme : le JS traduit 'rdfs:label' par son URI
-		// écrire une fonction qui récupère les bons URI ? ou inclure ces derniers dans la présente fonction ?
+		// Ã©crire une fonction qui rÃ©cupÃ¨re les bons URI ? ou inclure ces derniers dans la prÃ©sente fonction ?
 		wpldp_debug('id article : ' . $comment_post_id);
 
 		// gets poster id
-		// TODO : envisager une creation de user "à la volée" selon sioc:user ou compte invité
-		// Toute une réflexion à faire sur la gestion des utilisateurs, pour les posts/comments "externes"
+		// TODO : envisager une creation de user "Ã  la volÃ©e" selon sioc:user ou compte invitÃ©
+		// Toute une rÃ©flexion Ã  faire sur la gestion des utilisateurs, pour les posts/comments "externes"
 		$comment_user_id = 2;
 		$tabUser = get_user_by('id', $comment_user_id);
 				
@@ -381,12 +384,12 @@ class wpldp
 		wpldp_debug('auteur : ' . $comment_author);
 		
 		// gets content of the comment
-		// TODO : ATTENTION à la validation des données ici (balises!)
+		// TODO : ATTENTION Ã  la validation des donnÃ©es ici (balises!)
 		$comment_content = $graph_0->{'dcterms:text'};		
 		wpldp_debug('contenu : ' . $comment_content);
 		
 		// sets various properties
-		// TODO : a définir
+		// TODO : a dÃ©finir
 		$comment_type = '';
 		$comment_parent = 0;
 		
@@ -414,7 +417,7 @@ class wpldp
 		);
 		
 		// creates comment
-		// TODO: validation des données etc.
+		// TODO: validation des donnÃ©es etc.
 		wp_insert_comment($tabComment);
 	
 		// ALTERNATE ENDING : print_r($data->get_body()); exit(0);
@@ -449,7 +452,7 @@ class wpldp
 		$comment = wpldp_map_comment($graph);
 		
 		// creates comment
-		// TODO: validation des données etc.
+		// TODO: validation des donnÃ©es etc.
 		wp_insert_comment($comment);
 	
 		// ALTERNATE ENDING : print_r($data->get_body()); exit(0);
